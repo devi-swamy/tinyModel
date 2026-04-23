@@ -1,0 +1,27 @@
+from crewai import Agent, LLM
+
+# Point CrewAI at your local Ollama TinyLlama model
+llm = LLM(
+    model="ollama/tinyllama",
+    base_url="http://localhost:11434"
+)
+
+researcher = Agent(
+    role="Research Analyst",
+    goal="Research the given topic thoroughly and gather key facts",
+    backstory="You are an expert researcher who finds and organises information clearly.",
+    llm=llm,
+    verbose=True,
+    max_iter=3,           # Keep it quick on low-spec hardware
+    memory=False
+)
+
+writer = Agent(
+    role="Content Writer",
+    goal="Write a clear, concise summary based on the research provided",
+    backstory="You are a skilled writer who turns raw research into readable summaries.",
+    llm=llm,
+    verbose=True,
+    max_iter=3,
+    memory=False
+)
