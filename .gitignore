@@ -1,0 +1,12 @@
+# Python virtual environment (never push this - it's huge)
+crewai-env/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Node
+node_modules/
+.next/
+.env.local
