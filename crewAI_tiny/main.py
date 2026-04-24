@@ -13,9 +13,21 @@ def run(topic: str):
     )
 
     result = crew.kickoff()
-    print("\n========== FINAL OUTPUT ==========")
-    print(result)
+
+    # Return structured output for both CLI and API use
+    research_output = tasks[0].output.raw if tasks[0].output else ""
+    writing_output = tasks[1].output.raw if tasks[1].output else str(result)
+
+    return {
+        "topic": topic,
+        "research": research_output,
+        "summary": writing_output,
+    }
 
 if __name__ == "__main__":
     topic = input("Enter a topic to research: ")
-    run(topic)
+    output = run(topic)
+    print("\n========== RESEARCH ==========")
+    print(output["research"])
+    print("\n========== SUMMARY ==========")
+    print(output["summary"])

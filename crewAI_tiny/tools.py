@@ -1,4 +1,4 @@
-from crewai_tools import tool
+from crewai.tools import tool
 
 @tool("Text Search Tool")
 def text_search(query: str) -> str:

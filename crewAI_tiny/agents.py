@@ -1,6 +1,5 @@
 from crewai import Agent, LLM
 
-# Point CrewAI at your local Ollama TinyLlama model
 llm = LLM(
     model="ollama/tinyllama",
     base_url="http://localhost:11434"
@@ -12,7 +11,7 @@ researcher = Agent(
     backstory="You are an expert researcher who finds and organises information clearly.",
     llm=llm,
     verbose=True,
-    max_iter=3,           # Keep it quick on low-spec hardware
+    max_iter=3,
     memory=False
 )
 
