@@ -9,6 +9,7 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [phase, setPhase] = useState('');
+  const isDisabled = topic.trim().length === 0 || loading;
 
   const handleSubmit = async () => {
     if (!topic.trim()) return;
@@ -21,7 +22,7 @@ export default function Home() {
       setTimeout(() => setPhase('Gathering intelligence...'), 2000);
       setTimeout(() => setPhase('Content Writer crafting summary...'), 6000);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/research`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/research`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic }),
@@ -78,7 +79,7 @@ export default function Home() {
             <button
               className={`${styles.button} ${loading ? styles.buttonLoading : ''}`}
               onClick={handleSubmit}
-              disabled={loading || !topic.trim()}
+             disabled={isDisabled ? true : false}
             >
               {loading ? <span className={styles.spinner} /> : 'Run →'}
             </button>
