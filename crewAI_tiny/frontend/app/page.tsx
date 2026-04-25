@@ -79,7 +79,7 @@ export default function Home() {
             <button
               className={`${styles.button} ${loading ? styles.buttonLoading : ''}`}
               onClick={handleSubmit}
-             disabled={isDisabled ? true : undefined}
+             disabled={isDisabled ? true : false}
             >
               {loading ? <span className={styles.spinner} /> : 'Run →'}
             </button>

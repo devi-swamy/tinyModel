@@ -1,5 +1,7 @@
 fastapi
 uvicorn
-python-dotenv
 crewai
 crewai-tools
+groq
+litellm
+pydantic

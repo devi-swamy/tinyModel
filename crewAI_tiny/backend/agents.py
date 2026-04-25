@@ -1,8 +1,10 @@
 from crewai import Agent, LLM
+import os
 
+print("GROQ KEY:", os.getenv("GROQ_API_KEY"))
 llm = LLM(
-    model="ollama/tinyllama",
-    base_url="http://localhost:11434"
+   model="groq/llama-3.1-8b-instant",
+    api_key=os.getenv("GROQ_API_KEY")
 )
 
 researcher = Agent(

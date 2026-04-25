@@ -2,14 +2,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from main import run
-import os
+
 
 app = FastAPI(title="CrewAI Tiny API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000",os.getenv("FRONTEND_URL", "")],
-    allow_credentials=True,
+     allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
