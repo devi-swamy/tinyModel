@@ -1,15 +1,36 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import styles from './page.module.css';
 
-export default function Home() {
+type ResearchResult = {
+  topic: string;
+  research: string;
+  summary: string;
+};
+
+type AgentPillProps = {
+  icon: string;
+  name: string;
+  file: string;
+  task: string;
+  active: boolean;
+  done: boolean;
+};
+
+type FormattedOutputProps = {
+  text: string;
+};
+
+function ResearchApp() {
   const [topic, setTopic] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState('');
   const [phase, setPhase] = useState('');
-  const isDisabled = topic.trim().length === 0 || loading;
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 
   const handleSubmit = async () => {
     if (!topic.trim()) return;
@@ -22,7 +43,7 @@ export default function Home() {
       setTimeout(() => setPhase('Gathering intelligence...'), 2000);
       setTimeout(() => setPhase('Content Writer crafting summary...'), 6000);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/research`, {
+      const res = await fetch(`${apiUrl}/research`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic }),
@@ -30,13 +51,13 @@ export default function Home() {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.detail || 'Something went wrong');
+        throw new Error((err as { detail?: string }).detail ?? 'Something went wrong');
       }
 
-      const data = await res.json();
+      const data = (await res.json()) as ResearchResult;
       setResult(data);
-    } catch (e) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
       setLoading(false);
       setPhase('');
@@ -46,24 +67,19 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.grid} aria-hidden />
-
       <div className={styles.container}>
 
-        {/* Header */}
         <header className={styles.header}>
           <div className={styles.badge}>
             <span className={styles.dot} />
-            Sequential Content Intelligence with CrewAI
+            crewai_tiny · 2 agents · sequential
           </div>
           <h1 className={styles.title}>
             CREW<span className={styles.accent}>AI</span>
           </h1>
-          <p className={styles.subtitle}>
-            Research Analyst → Content Writer
-          </p>
+          <p className={styles.subtitle}>Research Analyst → Content Writer</p>
         </header>
 
-        {/* Input */}
         <div className={styles.inputSection}>
           <div className={styles.inputWrapper}>
             <span className={styles.inputIcon}>⌕</span>
@@ -77,16 +93,15 @@ export default function Home() {
               disabled={loading}
             />
             <button
-              className={`${styles.button} ${loading ? styles.buttonLoading : ''}`}
+              className={styles.button}
               onClick={handleSubmit}
-             disabled={isDisabled ? true : false}
+              disabled={loading || !topic.trim()}
             >
               {loading ? <span className={styles.spinner} /> : 'Run →'}
             </button>
           </div>
         </div>
 
-        {/* Agent pipeline diagram */}
         <div className={styles.pipeline}>
           <AgentPill
             icon="🔍"
@@ -94,7 +109,7 @@ export default function Home() {
             file="agents.py"
             task="5 key facts"
             active={loading && (phase.includes('Research') || phase.includes('Gathering'))}
-            done={!!result}
+            done={result !== null}
           />
           <div className={styles.pipelineArrow}>
             <span className={styles.arrowLine} />
@@ -108,16 +123,12 @@ export default function Home() {
             file="agents.py"
             task="150-word summary"
             active={loading && phase.includes('Writer')}
-            done={!!result}
+            done={result !== null}
           />
         </div>
 
-        {/* Loading phase text */}
-        {loading && (
-          <p className={styles.phaseText}>{phase}</p>
-        )}
+        {loading && <p className={styles.phaseText}>{phase}</p>}
 
-        {/* Error */}
         {error && (
           <div className={styles.errorCard}>
             <span className={styles.errorIcon}>!</span>
@@ -128,15 +139,13 @@ export default function Home() {
           </div>
         )}
 
-        {result && (
+        {result !== null && (
           <div className={styles.results}>
             <div className={styles.topicTag}>
               <span className={styles.topicFile}>main.py → run()</span>
-              <strong>"{result.topic}"</strong>
+              <strong>&quot;{result.topic}&quot;</strong>
             </div>
-
             <div className={styles.cards}>
-              {/* Research output */}
               <div className={`${styles.card} ${styles.cardResearch}`}>
                 <div className={styles.cardHeader}>
                   <span className={styles.cardIcon}>🔍</span>
@@ -149,8 +158,6 @@ export default function Home() {
                   <FormattedOutput text={result.research} />
                 </div>
               </div>
-
-              {/* Summary output */}
               <div className={`${styles.card} ${styles.cardSummary}`}>
                 <div className={styles.cardHeader}>
                   <span className={styles.cardIcon}>✍️</span>
@@ -166,21 +173,23 @@ export default function Home() {
             </div>
           </div>
         )}
+
       </div>
     </main>
   );
 }
 
-/* Renders bullet lists nicely if the research output has them */
-function FormattedOutput({ text }) {
+function FormattedOutput({ text }: FormattedOutputProps) {
   if (!text) return null;
   const lines = text.split('\n').filter(Boolean);
-  const isBullet = (l) => /^[-•*]/.test(l.trim());
-
+  const isBullet = (l: string) => /^[-•*]/.test(l.trim());
   return (
     <ul className={styles.bulletList}>
       {lines.map((line, i) => (
-        <li key={i} className={`${styles.bulletItem} ${isBullet(line) ? styles.bulletReal : styles.bulletPlain}`}>
+        <li
+          key={i}
+          className={`${styles.bulletItem} ${isBullet(line) ? styles.bulletReal : styles.bulletPlain}`}
+        >
           {isBullet(line) ? line.replace(/^[-•*]\s*/, '') : line}
         </li>
       ))}
@@ -188,11 +197,16 @@ function FormattedOutput({ text }) {
   );
 }
 
-function AgentPill({ icon, name, file, task, active, done }) {
+function AgentPill({ icon, name, file, task, active, done }: AgentPillProps) {
   return (
     <div className={`${styles.agentPill} ${active ? styles.agentActive : ''} ${done ? styles.agentDone : ''}`}>
       <div className={styles.agentIconWrap}>
-        {done ? <span className={styles.agentCheck}>✓</span> : active ? <span className={styles.pulse} /> : <span className={styles.agentIconStatic}>{icon}</span>}
+        {done
+          ? <span className={styles.agentCheck}>✓</span>
+          : active
+            ? <span className={styles.pulse} />
+            : <span className={styles.agentIconStatic}>{icon}</span>
+        }
       </div>
       <div>
         <p className={styles.agentName}>{name}</p>
@@ -201,3 +215,5 @@ function AgentPill({ icon, name, file, task, active, done }) {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(ResearchApp), { ssr: false });
